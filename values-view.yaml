@@ -1,0 +1,134 @@
+profile: view
+
+shared:
+ ingress_domain: "cjett.net"
+ #ingress_issuer: local-issuer
+ ca_cert_data: | # To be passed if using custom certificates.
+  -----BEGIN CERTIFICATE-----
+  ...
+  -----END CERTIFICATE-----
+
+ceip_policy_disclosed: true # Installation fails if this is not set to true. Not a string.
+
+#The above keys are minimum numbers of entries needed in tap-values.yaml to get a functioning TAP Full profile installation.
+#Below are the keys which may have default values set, but can be overridden.
+
+buildservice:
+ kp_default_repository: "gcr.io/fe-cjett/build-service"
+ #kp_default_repository: "us-east1-docker.pkg.dev/fe-cjett/build-service"
+ #kp_default_repository_secret:
+ #       name: registry-credentials
+ #       namespace: tap-install
+ kp_default_repository_username: "_json_key"
+ kp_default_repository_password: |
+   {
+    "type": "service_account",
+    "project_id": "fe-cjett",
+    "private_key_id": "",
+    "private_key": "",
+    "client_email": "gcp-sa@fe-cjett.iam.gserviceaccount.com",
+    "client_id": "",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gcp-sa%40fe-cjett.iam.gserviceaccount.com"
+   }
+
+ootb_supply_chain_basic:
+ registry:
+   #server: "us-east1-docker.pkg.dev"
+   server: "gcr.io"
+   repository: "fe-cjett/scb"
+ gitops:
+   ssh_secret: ""
+
+ootb_supply_chain_testing:
+  registry:
+    server: "gcr.io"
+    repository: "fe-cjett/scb"
+  gitops:
+    ssh_secret: ""
+
+supply_chain: testing_scanning
+
+ootb_supply_chain_testing_scanning:
+  registry:
+   server: "gcr.io"
+   repository: "fe-cjett/scb"
+  gitops:
+    ssh_secret: ""
+
+#Gone in TAP 1.7
+#learningcenter:
+#  ingressDomain: "learningcenter.cjett.net"
+
+contour:
+ envoy:
+   service:
+     type: LoadBalancer
+
+tap_gui:
+ metadataStoreAutoconfiguration: true # Creates a service account, the Kubernetes control plane token and the...app_config block to enable communications between Tanzu Application Platform GUI and SCST - Store.
+ service_type: ClusterIP
+ app_config:
+   kubernetes:
+     serviceLocatorMethod:
+       type: 'multiTenant'
+     clusterLocatorMethods:
+       - type: 'config'
+         clusters:
+         ## Cluster 1
+           - url: https://1.2.3.4
+             name: run-cluster
+             authProvider: serviceAccount
+             serviceAccountToken: ""
+             skipTLSVerify: true
+             skipMetricsLookup: true
+         ## Cluster 2+
+           - url: https://5.6.7.8
+             name: build-cluster
+             authProvider: serviceAccount
+             serviceAccountToken: ""
+             skipTLSVerify: true
+             skipMetricsLookup: true
+   app:
+     baseUrl: http://tap-gui.cjett.net
+   catalog:
+     locations:
+       - type: url
+         target: https://github.com/coryjett/tap-catalogs/blob/11c415bf150ea25a8195518381499c4ac8e50dbf/blank/catalog-info.yaml
+   backend:
+     baseUrl: http://tap-gui.cjett.net
+     cors:
+       origin: http://tap-gui.cjett.net
+   auth:
+       allowGuestAccess: true
+ tls:
+   namespace: tap-gui 
+   secretName: tap-gui-cert2
+
+#cnrs:
+#  domain_template: '{{.Name}}-{{.Namespace}}.{{.Domain}}'
+  #ingress_issuer: local-issuer
+
+metadata_store:
+ ns_for_export_app_cert: "*"
+ app_service_type: ClusterIP
+
+#scanning:
+# metadataStore:
+#   url: "" # Deactivate embedded integration since it's deprecated
+
+grype:
+  namespace: "dev" # Verify this namespace is available within your cluster before initiating the Tanzu Application Platform installation.
+  targetImagePullSecret: "registry-credentials"
+  # In a single cluster, the connection between the scanning pod and the metadata store happens inside the cluster and does not pass through ingress. This is automatically configured, you do not need to provide an ingress connection to the store.
+
+policy:
+  tuf_enabled: false # By default, TUF initialization and keyless verification are deactivated.
+
+tap_telemetry:
+  installed_for_vmware_internal_use: "true"
+
+appliveview:
+  ingressEnabled: true

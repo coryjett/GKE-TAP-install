@@ -68,13 +68,45 @@ https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.7/tap/getting-sta
 ## Setup dev namespace
 https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.7/tap/install-online-set-up-namespaces.html
 
-### Legacy
-
-### Namespace provisioner
-
 ## Deploy workload to build cluster
-https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.7/tap/multicluster-getting-started.html
+https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.7/tap/multicluster-getting-started.html#start-the-workload-on-the-build-profile-cluster-1
 
 ## Deploy deliverable to run cluster
+https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.7/tap/multicluster-getting-started.html#start-the-workload-on-the-build-profile-cluster-1
 
 ## Handy commands
+
+### Packages
+`tanzu package available list --namespace tap-install`
+
+`tanzu package install tap -p tap.tanzu.vmware.com -v 1.7.3 --values-file values-build.yaml -n tap-install`
+
+`tanzu package installed update tap -p tap.tanzu.vmware.com -v 1.7.3 --values-file values-build.yaml -n tap-install`
+
+`tanzu package installed get tap -n tap-install`
+
+`tanzu package installed list -A`
+
+`tanzu package installed delete tap --namespace tap-install`
+
+`kubectl describe packageinstall/NAME -n tap-install`
+
+### Apps
+
+`tanzu apps workload list -n dev`
+
+`tanzu apps workload tail tanzu-java-web-app --since 10m --timestamp --namespace dev`
+
+### Supply Chains
+
+`tanzu apps cluster-supply-chain list`
+
+`tanzu apps cluster-supply-chain get basic-image-to-url`
+
+### Scanning
+
+`k describe scanpolicy scan-policy -n dev`
+
+### Pipelines
+
+`k describe pipeline developer-defined-tekton-pipeline -n dev`
